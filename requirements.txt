@@ -1,3 +1,2 @@
+reportlab
 streamlit
-pandas
-python-docx
