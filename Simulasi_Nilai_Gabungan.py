@@ -32,7 +32,6 @@ def local_css():
 
     h1, h2, h3 { color: #3E584A !important; }
     
-    /* Warna Metric (Poin) */
     [data-testid="stMetricValue"] {
         color: #4F7942 !important;
         font-size: 24px !important;
@@ -48,8 +47,28 @@ def local_css():
 
 local_css()
 
-# --- FUNGSI GENERATE PDF ---
+# --- 2. FUNGSI PEMBANTU (HELPERS) ---
+
+def generate_template():
+    """Fungsi untuk membuat file Excel template untuk Admin"""
+    columns = ["NIS", "Nama Siswa"]
+    mapels = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
+    for mapel in mapels:
+        for s in range(1, 6):
+            columns.append(f"{mapel}_S{s}")
+    
+    df_template = pd.DataFrame(columns=columns)
+    # Tambah satu baris contoh
+    example_row = ["12345", "Contoh Nama Siswa"] + [80]*20
+    df_template.loc[0] = example_row
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_template.to_excel(writer, index=False, sheet_name='DataSiswa')
+    return output.getvalue()
+
 def create_pdf(user, detail_data, nilai_akhir):
+    """Fungsi untuk membuat laporan PDF hasil simulasi"""
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=LETTER)
     w, h = LETTER
@@ -58,59 +77,80 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica", 12)
     p.drawCentredString(w/2, h - 26*mm, "SMP NEGERI 2 BANGUNTAPAN")
     p.line(20*mm, h - 32*mm, w - 20*mm, h - 32*mm)
+    
     p.setFont("Helvetica-Bold", 11)
     p.drawString(20*mm, h - 45*mm, f"Nama: {user['Nama Siswa']}")
     p.drawString(20*mm, h - 51*mm, f"NIS: {user['NIS']}")
+    
     p.setFont("Helvetica", 10)
     y = h - 70*mm
+    p.drawString(20*mm, y + 5*mm, "Rincian Nilai:")
     for d in detail_data:
-        p.drawString(22*mm, y, f"{d['Mata Pelajaran']} - Rerata: {d['Rerata']}, TKA/D: {d['TKA/D']}")
+        p.drawString(22*mm, y, f"{d['Mata Pelajaran']} - Rerata Rapor: {d['Rerata']}, Nilai TKA/D: {d['TKA/D']}")
         y -= 7*mm
+        
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(w/2, y - 10*mm, f"NILAI AKHIR: {nilai_akhir:.2f}")
+    p.drawCentredString(w/2, y - 10*mm, f"NILAI AKHIR GABUNGAN: {nilai_akhir:.2f}")
+    
     p.showPage()
     p.save()
     buffer.seek(0)
     return buffer
 
-# --- RUNNING TEXT ---
-st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
-
-# --- SESSION STATE ---
+# --- 3. INISIALISASI SESSION STATE ---
 if 'db_siswa' not in st.session_state: st.session_state.db_siswa = None
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 MAPEL_UTAMA = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
 
-# --- NAVIGASI ---
+# --- 4. TAMPILAN UTAMA ---
+st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
+
 menu = st.sidebar.selectbox("📂 MENU UTAMA", ["Home / Login", "Admin Upload"])
 
+# --- MODUL ADMIN ---
 if menu == "Admin Upload":
     st.title("📂 Admin Control")
     pwd = st.text_input("Password", type="password")
+    
     if pwd == "admin123":
-        # Pastikan baris-baris di bawah ini menjorok ke dalam (4 spasi)
-        template_data = generate_template()
+        st.info("Unduh template di bawah ini, isi datanya, lalu upload kembali.")
+        
+        # Tombol Download Template
+        template_bytes = generate_template()
         st.download_button(
             label="📥 Download Template Excel",
-            data=template_data,
-            file_name="template_siswa.xlsx",
+            data=template_bytes,
+            file_name="template_data_siswa.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        st.divider() 
         
-        uploaded = st.file_uploader("Upload Excel", type=["xlsx"])
+        st.divider()
+        
+        # Upload Data
+        uploaded = st.file_uploader("Upload Data Siswa (Excel)", type=["xlsx"])
         if uploaded:
-            df = pd.read_excel(uploaded)
-            df.columns = df.columns.str.strip()
-            df["NIS"] = df["NIS"].astype(str).str.strip()
-            st.session_state.db_siswa = df
-            st.success("Database Terupdate!")
-    # Jika baris 'else' di bawah ini sejajar dengan 'if pwd', maka aman
-    else:
-        st.warning("Silakan masukkan password admin.")
+            try:
+                df = pd.read_excel(uploaded)
+                df.columns = df.columns.str.strip()
+                # Pastikan NIS dibaca sebagai string agar tidak ada masalah angka desimal
+                if "NIS" in df.columns:
+                    df["NIS"] = df["NIS"].astype(str).str.replace('.0', '', regex=False).str.strip()
+                    st.session_state.db_siswa = df
+                    st.success(f"Berhasil mengunggah {len(df)} data siswa!")
+                else:
+                    st.error("Format kolom salah! Gunakan template yang disediakan.")
+            except Exception as e:
+                st.error(f"Terjadi kesalahan saat membaca file: {e}")
+    elif pwd != "":
+        st.error("Password Salah!")
+
+# --- MODUL SISWA (LOGIN & SIMULASI) ---
+else:
     if not st.session_state.logged_in:
         st.title("🏛️ Portal Simulasi")
-        nis_in = st.text_input("MASUKKAN NIS")
+        st.write("Silakan login menggunakan NIS Anda.")
+        
+        nis_in = st.text_input("MASUKKAN NIS", placeholder="Contoh: 12345")
         if st.button("LOGIN"):
             if st.session_state.db_siswa is not None:
                 match = st.session_state.db_siswa[st.session_state.db_siswa["NIS"] == nis_in.strip()]
@@ -118,36 +158,52 @@ if menu == "Admin Upload":
                     st.session_state.logged_in = True
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
-                else: st.error("NIS tidak ditemukan.")
+                else:
+                    st.error("NIS tidak ditemukan dalam database.")
+            else:
+                st.warning("Database siswa kosong. Admin harus upload data terlebih dahulu.")
+    
     else:
+        # Halaman Dashboard Siswa Setelah Login
         user = st.session_state.user_data
         st.title(f"🏫 Profil: {user['Nama Siswa']}")
+        
         if st.sidebar.button("Logout"):
             st.session_state.logged_in = False
             st.rerun()
 
         col_in, col_res = st.columns([1, 2])
         sim_tkad = {}
+        
         with col_in:
-            st.subheader("📝 Input TKA/D")
+            st.subheader("📝 Input Nilai TKA/D")
+            st.write("Masukkan estimasi nilai tes Anda:")
             for m in MAPEL_UTAMA:
                 sim_tkad[f"{m}_TKAD"] = st.number_input(f"{m}", 0.0, 100.0, 0.0, step=0.01, format="%.2f", key=f"in_{m}")
 
         with col_res:
             total_rerata = 0
             detail_data = []
+            
+            # Hitung Rerata Rapor per Mapel (S1-S5)
             for m in MAPEL_UTAMA:
-                v = [user[f"{m}_S{i}"] for i in range(1,6)]
-                avg = sum(v)/5
-                total_rerata += avg
-                detail_data.append({
-                    "Mata Pelajaran": m, "S1":int(v[0]), "S2":int(v[1]), "S3":int(v[2]), "S4":int(v[3]), "S5":int(v[4]),
-                    "Rerata": f"{avg:.2f}", "TKA/D": f"{sim_tkad[f'{m}_TKAD']:.2f}"
-                })
+                try:
+                    v = [float(user[f"{m}_S{i}"]) for i in range(1, 6)]
+                    avg = sum(v) / 5
+                    total_rerata += avg
+                    detail_data.append({
+                        "Mata Pelajaran": m, 
+                        "S1": int(v[0]), "S2": int(v[1]), "S3": int(v[2]), "S4": int(v[3]), "S5": int(v[4]),
+                        "Rerata": f"{avg:.2f}", 
+                        "TKA/D": f"{sim_tkad[f'{m}_TKAD']:.2f}"
+                    })
+                except KeyError:
+                    st.error(f"Data nilai {m} tidak lengkap di database.")
+                    st.stop()
             
             total_tkad = sum(sim_tkad.values())
             
-            # --- BAGIAN POIN YANG KEMBALI DITAMBAHKAN ---
+            # Perhitungan Sesuai Rumus
             poin_rapor = total_rerata * 0.4
             poin_tkad = total_tkad * 0.6
             nilai_akhir = poin_rapor + poin_tkad
@@ -155,14 +211,22 @@ if menu == "Admin Upload":
             m1, m2 = st.columns(2)
             m1.metric("Poin Rapor (40%)", f"{poin_rapor:.2f}")
             m2.metric("Poin TKA/D (60%)", f"{poin_tkad:.2f}")
-            # --------------------------------------------
 
-            st.markdown(f"""<div style="background:#E8F5E9;padding:15px;border-radius:12px;border:1px solid #A5D6A7;text-align:center;margin-bottom:10px;">
-                <p style="margin:0; font-size:12px; font-weight:bold; color:#2E7D32;">TOTAL NILAI AKHIR GABUNGAN</p>
-                <h1 style="font-size:50px !important;color:#1B5E20 !important;margin:0;">{nilai_akhir:.2f}</h1></div>""", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div style="background:#E8F5E9;padding:20px;border-radius:12px;border:1px solid #A5D6A7;text-align:center;margin-bottom:20px;">
+                    <p style="margin:0; font-size:14px; font-weight:bold; color:#2E7D32;">ESTIMASI NILAI GABUNGAN AKHIR</p>
+                    <h1 style="font-size:60px !important;color:#1B5E20 !important;margin:10px 0;">{nilai_akhir:.2f}</h1>
+                </div>
+            """, unsafe_allow_html=True)
             
-            with st.expander("🔍 Rincian Nilai", expanded=True):
+            with st.expander("🔍 Lihat Rincian Nilai Rapor", expanded=True):
                 st.table(pd.DataFrame(detail_data))
 
+            # Fitur Cetak PDF
             pdf_file = create_pdf(user, detail_data, nilai_akhir)
-            st.download_button(label="🖨️ UNDUH LAPORAN (PDF)", data=pdf_file, file_name=f"Simulasi_{user['NIS']}.pdf", mime="application/pdf")
+            st.download_button(
+                label="🖨️ UNDUH HASIL SIMULASI (PDF)", 
+                data=pdf_file, 
+                file_name=f"Hasil_Simulasi_{user['NIS']}.pdf", 
+                mime="application/pdf"
+            )
