@@ -88,13 +88,20 @@ if menu == "Admin Upload":
     st.title("📂 Admin Control")
     pwd = st.text_input("Password", type="password")
     if pwd == "admin123":
+        # --- TAMBAHKAN KODE INI ---
+        template_data = generate_template()
+        st.download_button(
+            label="📥 Download Template Excel",
+            data=template_data,
+            file_name="template_siswa.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.divider() # Garis pemisah
+        # --------------------------
+        
         uploaded = st.file_uploader("Upload Excel", type=["xlsx"])
         if uploaded:
-            df = pd.read_excel(uploaded)
-            df.columns = df.columns.str.strip()
-            df["NIS"] = df["NIS"].astype(str).str.strip()
-            st.session_state.db_siswa = df
-            st.success("Database Terupdate!")
+            # ... (sisa kode Anda tetap sama)
 else:
     if not st.session_state.logged_in:
         st.title("🏛️ Portal Simulasi")
