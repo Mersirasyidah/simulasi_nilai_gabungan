@@ -1,145 +1,156 @@
 import io
-import os
-import numpy as np
 import pandas as pd
 import streamlit as st
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
-from reportlab.lib.colors import black, lightgrey, blue, white
+from reportlab.lib import colors
 from datetime import datetime
 
-# --- Inisialisasi Database di Session State ---
-if 'db_siswa' not in st.session_state:
-    st.session_state.db_siswa = None
+# --- 1. KONFIGURASI HALAMAN & CSS ---
+st.set_page_config(page_title="Portal Akademik SMPN 2 Banguntapan", layout="wide")
 
+def local_css():
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+
+    .running-text {
+        font-family: 'Quicksand', sans-serif;
+        font-size: 14px; color: #3E584A; background-color: #E8F0E8;
+        padding: 8px 0; font-weight: bold; margin-top: -50px;
+        margin-bottom: 20px; border-bottom: 1px solid #D1DBD1;
+    }
+
+    .stApp { background-color: #F7F9F7; color: #34495E; }
+    [data-testid="stSidebar"] { background-color: #E8F0E8 !important; border-right: 1px solid #D1DBD1; }
+    
+    [data-testid="stVerticalBlock"] > div:has(div.element-container) {
+        background: white; border-radius: 12px; padding: 15px 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #E0E7E0; margin-bottom: 8px;
+    }
+
+    h1, h2, h3 { color: #3E584A !important; }
+    
+    /* Warna Metric (Poin) */
+    [data-testid="stMetricValue"] {
+        color: #4F7942 !important;
+        font-size: 24px !important;
+        font-weight: 700;
+    }
+
+    .stButton>button { 
+        border-radius: 8px; background-color: #6B8E7B; color: white; 
+        font-weight: 600; border: none; width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+local_css()
+
+# --- FUNGSI GENERATE PDF ---
+def create_pdf(user, detail_data, nilai_akhir):
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=LETTER)
+    w, h = LETTER
+    p.setFont("Helvetica-Bold", 16)
+    p.drawCentredString(w/2, h - 20*mm, "LAPORAN SIMULASI NILAI GABUNGAN")
+    p.setFont("Helvetica", 12)
+    p.drawCentredString(w/2, h - 26*mm, "SMP NEGERI 2 BANGUNTAPAN")
+    p.line(20*mm, h - 32*mm, w - 20*mm, h - 32*mm)
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(20*mm, h - 45*mm, f"Nama: {user['Nama Siswa']}")
+    p.drawString(20*mm, h - 51*mm, f"NIS: {user['NIS']}")
+    p.setFont("Helvetica", 10)
+    y = h - 70*mm
+    for d in detail_data:
+        p.drawString(22*mm, y, f"{d['Mata Pelajaran']} - Rerata: {d['Rerata']}, TKA/D: {d['TKA/D']}")
+        y -= 7*mm
+    p.setFont("Helvetica-Bold", 14)
+    p.drawCentredString(w/2, y - 10*mm, f"NILAI AKHIR: {nilai_akhir:.2f}")
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return buffer
+
+# --- RUNNING TEXT ---
+st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
+
+# --- SESSION STATE ---
+if 'db_siswa' not in st.session_state: st.session_state.db_siswa = None
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 MAPEL_UTAMA = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
-SEMESTER_LIST = ["S1", "S2", "S3", "S4", "S5"]
 
-bulan_id = {
-    "January": "Januari", "February": "Februari", "March": "Maret",
-    "April": "April", "May": "Mei", "June": "Juni",
-    "July": "Juli", "August": "Agustus", "September": "September",
-    "October": "Oktober", "November": "November", "December": "Desember"
-}
+# --- NAVIGASI ---
+menu = st.sidebar.selectbox("📂 MENU UTAMA", ["Home / Login", "Admin Upload"])
 
-# --- Fungsi PDF (Tetap sama dengan kode asli Anda) ---
-def draw_kwarto_page(c, row, sel_tahun, tgl_ttd):
-    # (Fungsi draw_kwarto_page Anda yang asli diletakkan di sini tanpa perubahan)
-    # Pastikan variabel 'tkad' di fungsi ini mengambil dari input simulasi
-    width, height = LETTER
-    margin_left = 25 * mm
-    margin_right = 20 * mm
-    y = height - 18 * mm
-
-    # --- KOP & LOGO ---
-    # ... (Gunakan kode menggambar PDF yang Anda miliki) ...
-    # Bagian perhitungan di dalam PDF:
-    total_rata_s15 = 0
-    total_tkad = 0
-    for idx, m in enumerate(MAPEL_UTAMA, 1):
-        vals_sem = [row[f"{m}_{s}"] for s in SEMESTER_LIST]
-        rata = sum(vals_sem) / 5
-        tkad = row[f"{m}_TKAD"] # Ini akan mengambil nilai dari simulasi
-        total_rata_s15 += rata
-        total_tkad += tkad
-        # ... (Sisa kode drawing tabel) ...
-
-    # Contoh ringkas logic nilai gabungan sesuai rumus Anda
-    nilai_gabungan = (total_rata_s15 * 0.4) + (total_tkad * 0.6)
-    # ... (Lanjutkan drawing footer pdf) ...
-    pass # Hapus 'pass' jika sudah copy-paste kode asli Anda
-
-# --- UI Streamlit ---
-st.set_page_config(page_title="Simulasi Nilai Gabungan", layout="wide")
-
-tabs = st.sidebar.radio("Navigasi Menu", ["1. Upload Data Rapor", "2. Simulasi & Generate"])
-
-# --- MENU 1: UPLOAD DATA ---
-if tabs == "1. Upload Data Rapor":
-    st.header("📂 Database Nilai Rapor Semester 1-5")
-
-    # Download Template
-    cols_template = ["Kelas", "NIS", "Nama Siswa"] + [f"{m}_{s}" for m in MAPEL_UTAMA for s in SEMESTER_LIST]
-    df_temp = pd.DataFrame(columns=cols_template)
-    buffer_temp = io.BytesIO()
-    with pd.ExcelWriter(buffer_temp, engine="openpyxl") as writer:
-        df_temp.to_excel(writer, index=False)
-
-    st.download_button("📥 Download Template Excel", data=buffer_temp.getvalue(), file_name="Template_Rapor.xlsx")
-
-    uploaded = st.file_uploader("Upload Nilai Rapor S1-S5", type=["xlsx"])
-
-    if uploaded:
-        df_raw = pd.read_excel(uploaded)
-        # Cleaning & Numerik
-        for col in df_raw.columns:
-            if col not in ["Kelas", "NIS", "Nama Siswa"]:
-                df_raw[col] = pd.to_numeric(df_raw[col].astype(str).str.replace(",", "."), errors="coerce").fillna(0)
-
-        st.session_state.db_siswa = df_raw
-        st.success(f"✅ Berhasil menyimpan {len(df_raw)} data siswa ke sistem.")
-        st.dataframe(df_raw.head())
-
-# --- MENU 2: SIMULASI ---
-elif tabs == "2. Simulasi & Generate":
-    st.header("🧪 Simulasi Nilai TKA/D")
-
-    if st.session_state.db_siswa is None:
-        st.warning("⚠️ Data Rapor belum diunggah. Silakan ke menu Upload terlebih dahulu.")
+if menu == "Admin Upload":
+    st.title("📂 Admin Control")
+    pwd = st.text_input("Password", type="password")
+    if pwd == "admin123":
+        uploaded = st.file_uploader("Upload Excel", type=["xlsx"])
+        if uploaded:
+            df = pd.read_excel(uploaded)
+            df.columns = df.columns.str.strip()
+            df["NIS"] = df["NIS"].astype(str).str.strip()
+            st.session_state.db_siswa = df
+            st.success("Database Terupdate!")
+else:
+    if not st.session_state.logged_in:
+        st.title("🏛️ Portal Simulasi")
+        nis_in = st.text_input("MASUKKAN NIS")
+        if st.button("LOGIN"):
+            if st.session_state.db_siswa is not None:
+                match = st.session_state.db_siswa[st.session_state.db_siswa["NIS"] == nis_in.strip()]
+                if not match.empty:
+                    st.session_state.logged_in = True
+                    st.session_state.user_data = match.iloc[0].to_dict()
+                    st.rerun()
+                else: st.error("NIS tidak ditemukan.")
     else:
-        df = st.session_state.db_siswa.copy()
+        user = st.session_state.user_data
+        st.title(f"🏫 Profil: {user['Nama Siswa']}")
+        if st.sidebar.button("Logout"):
+            st.session_state.logged_in = False
+            st.rerun()
 
-        col_a, col_b = st.columns(2)
-        with col_a:
-            sel_kelas = st.selectbox("Pilih Kelas", sorted(df["Kelas"].unique()))
-        with col_b:
-            sel_tahun = st.selectbox("Tahun Pelajaran", ["2024/2025", "2025/2026"])
+        col_in, col_res = st.columns([1, 2])
+        sim_tkad = {}
+        with col_in:
+            st.subheader("📝 Input TKA/D")
+            for m in MAPEL_UTAMA:
+                sim_tkad[f"{m}_TKAD"] = st.number_input(f"{m}", 0.0, 100.0, 0.0, step=0.01, format="%.2f", key=f"in_{m}")
 
-        tgl_ttd = st.date_input("Tanggal TTD Laporan", datetime.now())
+        with col_res:
+            total_rerata = 0
+            detail_data = []
+            for m in MAPEL_UTAMA:
+                v = [user[f"{m}_S{i}"] for i in range(1,6)]
+                avg = sum(v)/5
+                total_rerata += avg
+                detail_data.append({
+                    "Mata Pelajaran": m, "S1":int(v[0]), "S2":int(v[1]), "S3":int(v[2]), "S4":int(v[3]), "S5":int(v[4]),
+                    "Rerata": f"{avg:.2f}", "TKA/D": f"{sim_tkad[f'{m}_TKAD']:.2f}"
+                })
+            
+            total_tkad = sum(sim_tkad.values())
+            
+            # --- BAGIAN POIN YANG KEMBALI DITAMBAHKAN ---
+            poin_rapor = total_rerata * 0.4
+            poin_tkad = total_tkad * 0.6
+            nilai_akhir = poin_rapor + poin_tkad
 
-        # Filter siswa berdasarkan kelas
-        df_filtered = df[df["Kelas"] == sel_kelas].reset_index(drop=True)
+            m1, m2 = st.columns(2)
+            m1.metric("Poin Rapor (40%)", f"{poin_rapor:.2f}")
+            m2.metric("Poin TKA/D (60%)", f"{poin_tkad:.2f}")
+            # --------------------------------------------
 
-        st.subheader(f"Input Nilai TKA/D - Kelas {sel_kelas}")
-        st.info("Masukkan nilai TKA/D untuk setiap mapel di bawah ini:")
+            st.markdown(f"""<div style="background:#E8F5E9;padding:15px;border-radius:12px;border:1px solid #A5D6A7;text-align:center;margin-bottom:10px;">
+                <p style="margin:0; font-size:12px; font-weight:bold; color:#2E7D32;">TOTAL NILAI AKHIR GABUNGAN</p>
+                <h1 style="font-size:50px !important;color:#1B5E20 !important;margin:0;">{nilai_akhir:.2f}</h1></div>""", unsafe_allow_html=True)
+            
+            with st.expander("🔍 Rincian Nilai", expanded=True):
+                st.table(pd.DataFrame(detail_data))
 
-        # Buat kolom input TKA/D secara dinamis
-        # Kita gunakan data_editor agar user bisa input langsung seperti Excel
-        tkad_cols = [f"{m}_TKAD" for m in MAPEL_UTAMA]
-        for col in tkad_cols:
-            if col not in df_filtered.columns:
-                df_filtered[col] = 0.0
-
-        # Tampilkan editor untuk mengisi nilai TKA/D
-        edited_df = st.data_editor(
-            df_filtered,
-            column_order=["NIS", "Nama Siswa"] + tkad_cols,
-            disabled=["NIS", "Nama Siswa"], # NIS/Nama tidak boleh diedit di sini
-            hide_index=True
-        )
-
-        if st.button("🚀 Generate PDF Hasil Simulasi"):
-            buffer = io.BytesIO()
-            c = canvas.Canvas(buffer, pagesize=LETTER)
-
-            # Progress bar
-            progress_bar = st.progress(0)
-            total_siswa = len(edited_df)
-
-            for i, (_, row) in enumerate(edited_df.iterrows()):
-                # Panggil fungsi gambar PDF (pastikan fungsi draw_kwarto_page sudah terisi lengkap)
-                # draw_kwarto_page(c, row, sel_tahun, tgl_ttd)
-                # (Saya matikan panggilannya di contoh ini agar tidak error karena butuh assets/logo)
-
-                # Logic simulasi sederhana untuk tampilan di Streamlit sebelum print PDF
-                c.showPage()
-                progress_bar.progress((i + 1) / total_siswa)
-
-            # --- CATATAN: Karena saya tidak punya assets gambar Anda,
-            # bagian simpan PDF di bawah ini hanya akan berfungsi jika fungsi
-            # draw_kwarto_page Anda sudah dicopy dengan benar ---
-
-            # c.save()
-            # st.download_button("📄 Unduh PDF Gabungan", data=buffer.getvalue(), file_name=f"Laporan_Simulasi_{sel_kelas}.pdf")
-            st.success("Simulasi selesai! PDF siap diunduh (Pastikan file logo/ttd tersedia di folder assets).")
+            pdf_file = create_pdf(user, detail_data, nilai_akhir)
+            st.download_button(label="🖨️ UNDUH LAPORAN (PDF)", data=pdf_file, file_name=f"Simulasi_{user['NIS']}.pdf", mime="application/pdf")
