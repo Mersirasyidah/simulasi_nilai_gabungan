@@ -193,7 +193,7 @@ else:
                     total_rerata += avg
                     detail_data.append({
                         "Mata Pelajaran": m, 
-                        "S1": int(v[0]), "S2": int(v[1]), "S3": int(v[2]), "S4": int(v[3]), "S5": int(v[4]),
+                        "Sem-1": int(v[0]), "Sem-2": int(v[1]), "Sem-3": int(v[2]), "Sem-4": int(v[3]), "Sem-5": int(v[4]),
                         "Rerata": f"{avg:.2f}", 
                         "TKA/D": f"{sim_tkad[f'{m}_TKAD']:.2f}"
                     })
