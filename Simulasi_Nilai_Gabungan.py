@@ -166,7 +166,7 @@ else:
     else:
         # Halaman Dashboard Siswa Setelah Login
         user = st.session_state.user_data
-        st.title(f"🏫 Profil: {user['Nama Siswa']}")
+        st.title(f"🏫 Hallo: {user['Nama Siswa']}!")
         
         if st.sidebar.button("Logout"):
             st.session_state.logged_in = False
