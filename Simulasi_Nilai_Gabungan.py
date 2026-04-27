@@ -82,7 +82,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     total_r, total_t = 0, 0
     for i, d in enumerate(detail_data, 1):
-        data.append([i, d["Mata Pelajaran"], d["Sem-1"], d["Sem-2"], d["Sem-3"], d["Sem-4"], d["Sem-5"], d["Rerata"], d["TKA/D"]])
+        # Pastikan angka desimal 2 digit di dalam list PDF
+        data.append([i, d["Mata Pelajaran"], d["Sem-1"], d["Sem-2"], d["Sem-3"], d["Sem-4"], d["Sem-5"], f"{float(d['Rerata']):.2f}", f"{float(d['TKA/D']):.2f}"])
         total_r += float(d["Rerata"])
         total_t += float(d["TKA/D"])
     
@@ -143,7 +144,6 @@ with st.sidebar:
 
 menu = st.sidebar.selectbox("Pilih Halaman", list_menu)
 
-# --- HALAMAN ADMIN ---
 if menu == "Admin Upload":
     st.title("📂 Pengaturan Database")
     uploaded = st.file_uploader("Upload Excel (XLSX)", type=["xlsx"])
@@ -152,29 +152,25 @@ if menu == "Admin Upload":
         save_data(df)
         st.session_state.db_siswa = load_data()
         st.success("Database Berhasil Diperbarui!")
-
-# --- HALAMAN LOGIN / SISWA ---
 else:
     st.markdown("""<div class="running-text"><marquee scrollamount="7">✨ Selamat Datang di Portal Simulasi Nilai Gabungan SMP Negeri 2 Banguntapan ✨</marquee></div>""", unsafe_allow_html=True)
     
     if not st.session_state.logged_in:
-        st.title("🏛️ Silakan Login")
+        st.title("🏛️ Portal Simulasi")
         u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
         p_nisn = st.text_input("Password (NISN)", type="password")
         if st.button("MASUK"):
             db = st.session_state.db_siswa
             if db is not None:
-                # Pencarian case-insensitive
                 match = db[(db["Nama Siswa"].str.upper() == u_nama.strip().upper()) & (db["NISN"].astype(str) == p_nisn.strip())]
                 if not match.empty:
                     st.session_state.logged_in = True
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
-                else: st.error("Data tidak ditemukan. Pastikan Nama dan NISN benar.")
-            else: st.warning("Database belum diunggah oleh admin.")
+                else: st.error("Data tidak ditemukan.")
+            else: st.warning("Database kosong.")
     
     else:
-        # --- KETIKA SUDAH LOGIN ---
         user = st.session_state.user_data
         st.title(f"🏫 Halo, {user['Nama Siswa']}!")
         
@@ -182,7 +178,6 @@ else:
             st.session_state.logged_in = False
             st.rerun()
 
-        # Layout Input dan Hasil
         col_in, col_res = st.columns([1, 2])
         MAPEL = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
         sim_tkad = {}
@@ -193,7 +188,6 @@ else:
                 sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"input_{m}")
 
         with col_res:
-            # Hitung Nilai
             total_rerata_rapor = 0
             detail = []
             for m in MAPEL:
@@ -201,29 +195,25 @@ else:
                 avg = sum(v) / 5
                 total_rerata_rapor += avg
                 detail.append({
-                    "Mata Pelajaran": m, "Sem-1": int(v[0]), "Sem-2": int(v[1]), 
-                    "Sem-3": int(v[2]), "Sem-4": int(v[3]), "Sem-5": int(v[4]),
-                    "Rerata": round(avg, 2), "TKA/D": sim_tkad[m]
+                    "Mata Pelajaran": m, 
+                    "Sem-1": int(v[0]), "Sem-2": int(v[1]), "Sem-3": int(v[2]), "Sem-4": int(v[3]), "Sem-5": int(v[4]),
+                    "Rerata": f"{avg:.2f}", # Format 2 digit di layar
+                    "TKA/D": f"{sim_tkad[m]:.2f}" # Format 2 digit di layar
                 })
             
             total_tkad = sum(sim_tkad.values())
             nilai_akhir = (total_rerata_rapor * 0.4) + (total_tkad * 0.6)
             
-            # Tampilkan Hasil Skor Besar
             st.markdown(f"""
                 <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); padding:25px; border-radius:15px; border:1px solid #90CAF9; text-align:center; margin-bottom:20px;">
                     <p style="margin:0; color:#0D47A1; font-weight:bold;">ESTIMASI NILAI AKHIR GABUNGAN</p>
                     <h1 style="font-size:65px !important; color:#1565C0 !important; margin:10px 0;">{nilai_akhir:.2f}</h1>
-                    <p style="font-size:12px; color:#546E7A;">(Jumlah Rerata Rapor x 0.4) + (Jumlah TKA/D x 0.6)</p>
                 </div>
             """, unsafe_allow_html=True)
             
-            # --- TABEL RINCIAN NILAI DI LAYAR ---
             st.subheader("📊 Rincian Nilai")
-            df_tampilan = pd.DataFrame(detail)
-            st.table(df_tampilan)
+            st.table(pd.DataFrame(detail))
 
-            # Tombol Cetak
             pdf_file = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
