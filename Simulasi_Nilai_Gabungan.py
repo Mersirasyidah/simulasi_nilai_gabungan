@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 import os
 from reportlab.lib.pagesizes import LETTER
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, cm
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
@@ -19,12 +19,10 @@ def local_css():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
     
-    /* 1. Latar Belakang Utama Cerah */
     .stApp {
         background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%) !important;
     }
 
-    /* 2. Menu Navigasi (Sidebar) Senada */
     [data-testid="stSidebar"] {
         background-color: #E3F2FD !important;
         border-right: 1px solid #BBDEFB;
@@ -36,7 +34,6 @@ def local_css():
         font-family: 'Quicksand', sans-serif;
     }
 
-    /* 3. Running Text */
     .running-text {
         font-family: 'Quicksand', sans-serif;
         font-size: 14px; color: #1565C0; 
@@ -45,7 +42,6 @@ def local_css():
         margin-bottom: 25px; border-bottom: 2px solid #90CAF9;
     }
 
-    /* 4. Kotak Konten (Cards) */
     [data-testid="stVerticalBlock"] > div:has(div.element-container) {
         background: white !important;
         border-radius: 15px; 
@@ -55,7 +51,6 @@ def local_css():
         margin-bottom: 20px;
     }
 
-    /* 5. Tombol Biru Estetik */
     .stButton>button {
         border-radius: 10px; 
         background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
@@ -99,16 +94,31 @@ def create_pdf(user, detail_data, nilai_akhir):
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=LETTER)
     w, h = LETTER
-    p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(w/2, h - 15*mm, "HASIL SIMULASI NILAI GABUNGAN")
-    p.drawCentredString(w/2, h - 21*mm, "TAHUN PELAJARAN 2025/2026")
-    p.setFont("Helvetica", 11)
-    p.drawString(35*mm, h - 35*mm, f"Nama Siswa  : {user.get('Nama Siswa', '')}")
-    p.drawString(35*mm, h - 42*mm, f"NIS         : {user.get('NIS', '')}")
-    p.drawString(35*mm, h - 49*mm, f"Kelas       : {user.get('Kelas', '-')}")
     
+    # --- PENGATURAN MARGIN ---
+    margin_top = 3 * cm
+    margin_side = 2 * cm  # Margin kiri dan kanan sama (simetris)
+    
+    y_position = h - margin_top
+    
+    # Judul / Header
+    p.setFont("Helvetica-Bold", 14)
+    p.drawCentredString(w/2, y_position, "HASIL SIMULASI NILAI GABUNGAN")
+    y_position -= 7 * mm
+    p.drawCentredString(w/2, y_position, "TAHUN PELAJARAN 2025/2026")
+    
+    # Data Siswa
+    y_position -= 15 * mm
+    p.setFont("Helvetica", 11)
+    p.drawString(margin_side, y_position, f"Nama Siswa  : {user.get('Nama Siswa', '')}")
+    y_position -= 6 * mm
+    p.drawString(margin_side, y_position, f"NIS         : {user.get('NIS', '')}")
+    y_position -= 6 * mm
+    p.drawString(margin_side, y_position, f"Kelas       : {user.get('Kelas', '-')}")
+    
+    # Tabel
     data = [
-        ["No", "Mata Pelajaran", "Nilai Rapor Sem 1-5", "", "", "", "", "Rerata", "Nilai TKA/D"],
+        ["No", "Mata Pelajaran", "Nilai Rapor Semester 1-5", "", "", "", "", "Rerata", "Nilai TKA/D"],
         ["", "", "S1", "S2", "S3", "S4", "S5", "", ""]
     ]
     
@@ -121,7 +131,12 @@ def create_pdf(user, detail_data, nilai_akhir):
     data.append(["JUMLAH", "", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
     data.append(["NILAI GABUNGAN (60% TKA/D + 40% Rapor)", "", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
     
-    table = Table(data, colWidths=[10*mm, 45*mm, 15*mm, 15*mm, 15*mm, 15*mm, 15*mm, 22*mm, 25*mm])
+    # Penyesuaian Lebar Kolom agar Tengah
+    col_widths = [10*mm, 45*mm, 15*mm, 15*mm, 15*mm, 15*mm, 15*mm, 20*mm, 25*mm]
+    table_width = sum(col_widths)
+    x_table = (w - table_width) / 2 # Mencari titik tengah halaman
+    
+    table = Table(data, colWidths=col_widths)
     table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -131,15 +146,24 @@ def create_pdf(user, detail_data, nilai_akhir):
         ('SPAN', (0,-2), (6,-2)), ('SPAN', (0,-1), (7,-1)),
         ('BACKGROUND', (0,-1), (-1,-1), colors.lightgrey),
         ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
     ]))
-    tw, th = table.wrapOn(p, 20*mm, h - 60*mm)
-    table.drawOn(p, 15*mm, h - 60*mm - th)
+    
+    y_position -= 10 * mm
+    tw, th = table.wrapOn(p, margin_side, y_position)
+    table.drawOn(p, x_table, y_position - th)
+    
+    # Catatan Rumus di bawah tabel
+    y_note = y_position - th - 10*mm
+    p.setFont("Helvetica-Oblique", 8)
+    p.drawString(margin_side, y_note, "* Rumus: (Total TKA/D x 60%) + (Total Rerata Rapor x 40%)")
+
     p.showPage()
     p.save()
     buffer.seek(0)
     return buffer
 
-# --- 3. LOGIC ---
+# --- 3. LOGIC APP ---
 if 'db_siswa' not in st.session_state:
     st.session_state.db_siswa = load_data()
 if 'logged_in' not in st.session_state:
@@ -162,16 +186,16 @@ if menu == "Admin Upload":
         df = pd.read_excel(uploaded)
         save_data(df)
         st.session_state.db_siswa = load_data()
-        st.success("Database Diperbarui!")
+        st.success("Database Berhasil Diperbarui!")
 
 else:
-    st.markdown("""<div class="running-text"><marquee>✨ Rumus: (Total TKA/D x 60%) + (Total Rerata Rapor x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="running-text"><marquee scrollamount="7">✨ Selamat Datang di Portal Akademik SMP Negeri 2 Banguntapan - Silakan lakukan simulasi nilai gabungan Anda ✨</marquee></div>""", unsafe_allow_html=True)
     
     if not st.session_state.logged_in:
-        st.title("🏛️ Portal Simulasi Nilai")
+        st.title("🏛️ Portal Simulasi Nilai Gabungan")
         st.markdown("""<div style="text-align: right;"><span class="copyright-label">© 2026 dikembangkan oleh Mersi</span></div>""", unsafe_allow_html=True)
         
-        u_nama = st.text_input("Username (Nama Sesuai Rapor)")
+        u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
         p_nisn = st.text_input("Password (NISN)", type="password")
         if st.button("MASUK"):
             db = st.session_state.db_siswa
@@ -181,7 +205,8 @@ else:
                     st.session_state.logged_in = True
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
-                else: st.error("Data tidak ditemukan.")
+                else: st.error("Kombinasi Nama dan NISN tidak ditemukan.")
+            else: st.warning("Database belum diunggah oleh admin.")
     
     else:
         user = st.session_state.user_data
@@ -195,9 +220,9 @@ else:
         sim_tkad = {}
         
         with col_in:
-            st.subheader("📝 Input TKA/D")
+            st.subheader("📝 Input Nilai TKA/D")
             for m in MAPEL:
-                sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0)
+                sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"input_{m}")
 
         with col_res:
             total_rerata_rapor = 0
@@ -213,8 +238,6 @@ else:
                 })
             
             total_tkad = sum(sim_tkad.values())
-            
-            # --- PERHITUNGAN SESUAI RUMUS ANDA ---
             poin_rapor = total_rerata_rapor * 0.4
             poin_tkad = total_tkad * 0.6
             nilai_akhir = poin_rapor + poin_tkad
@@ -227,14 +250,14 @@ else:
                 <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); padding:25px; border-radius:15px; border:1px solid #90CAF9; text-align:center;">
                     <p style="margin:0; color:#0D47A1; font-weight:bold;">ESTIMASI NILAI AKHIR GABUNGAN</p>
                     <h1 style="font-size:65px !important; color:#1565C0 !important; margin:10px 0;">{nilai_akhir:.2f}</h1>
-                    <p style="font-size:12px; color:#546E7A;">( {poin_tkad:.2f} + {poin_rapor:.2f} )</p>
+                    <p style="font-size:13px; color:#546E7A;">(Jumlah Rerata Rapor x 0.4) + (Jumlah TKA/D x 0.6)</p>
                 </div>
             """, unsafe_allow_html=True)
             
-            with st.expander("🔍 Rincian Rapor"):
+            with st.expander("🔍 Lihat Rincian Nilai"):
                 st.table(pd.DataFrame(detail))
 
-            pdf = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK PDF", pdf, f"Hasil_{user['Nama Siswa']}.pdf")
+            pdf_file = create_pdf(user, detail, nilai_akhir)
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Laporan_Simulasi_{user['Nama Siswa']}.pdf")
 
-st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMP Negeri 2 Banguntapan</div>', unsafe_allow_html=True)
