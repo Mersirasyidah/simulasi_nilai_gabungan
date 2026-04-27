@@ -223,13 +223,13 @@ else:
         """)
 
         # COPYRIGHT BADGE
-        st.markdown("""
-            <div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
-                <span class="copyright-label">
-                    © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
-                </span>
-            </div>
-        """, unsafe_allow_html=True)
+        #st.markdown("""
+            #<div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
+                #<span class="copyright-label">
+                    #© 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
+                #</span>
+            #</div>
+        #""", unsafe_allow_html=True)
         
         with st.container():
             u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
