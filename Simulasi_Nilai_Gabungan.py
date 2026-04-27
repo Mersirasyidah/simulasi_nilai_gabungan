@@ -162,8 +162,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    p.setFont("Helvetica-Bold", 8)
-    p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
+    #p.setFont("Helvetica-Bold", 8)
+    #p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
 
     p.showPage()
     p.save()
