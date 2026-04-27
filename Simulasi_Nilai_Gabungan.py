@@ -18,20 +18,47 @@ def local_css():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+    
+    /* Latar Belakang Estetik (Gradasi) */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7f6 0%, #e8f0e8 100%);
+    }
+
     .running-text {
         font-family: 'Quicksand', sans-serif;
-        font-size: 14px; color: #3E584A; background-color: #E8F0E8;
-        padding: 8px 0; font-weight: bold; margin-top: -50px;
-        margin-bottom: 20px; border-bottom: 1px solid #D1DBD1;
+        font-size: 14px; color: #3E584A; background-color: rgba(232, 240, 232, 0.9);
+        padding: 10px 0; font-weight: bold; margin-top: -50px;
+        margin-bottom: 25px; border-bottom: 1px solid #D1DBD1;
     }
-    .stApp { background-color: #F7F9F7; }
+
+    /* Card (Kotak Putih) yang lebih lembut */
     [data-testid="stVerticalBlock"] > div:has(div.element-container) {
-        background: white; border-radius: 12px; padding: 15px 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #E0E7E0;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 15px; padding: 20px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-bottom: 20px;
     }
-    h1, h2, h3 { color: #3E584A !important; }
-    .stButton>button { border-radius: 8px; background-color: #6B8E7B; color: white; font-weight: 600; width: 100%; }
-    .footer-web { text-align: center; color: #7f8c8d; font-size: 12px; padding: 20px; font-family: 'Quicksand', sans-serif; }
+
+    h1, h2, h3 { color: #3E584A !important; font-family: 'Quicksand', sans-serif; }
+    
+    /* Button Estetik */
+    .stButton>button {
+        border-radius: 10px; 
+        background: linear-gradient(45deg, #6B8E7B, #8eb59f);
+        color: white; font-weight: 600; border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(107, 142, 123, 0.3);
+    }
+
+    .footer-web { 
+        text-align: center; color: #7f8c8d; font-size: 12px; 
+        padding: 30px; font-family: 'Quicksand', sans-serif; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -100,8 +127,9 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    #p.setFont("Helvetica-Bold", 8)
-    #p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
+    # CREDIT DI PDF
+    p.setFont("Helvetica-Bold", 8)
+    p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
 
     p.showPage()
     p.save()
@@ -151,94 +179,4 @@ if menu == "Admin Upload":
 else:
     st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
     
-    if not st.session_state.logged_in:
-        st.title("🏛️ Portal Simulasi Nilai Gabungan")
-        
-        st.info("""
-        **Selamat datang di aplikasi simulasi nilai gabungan.** Sistem ini dirancang untuk membantu siswa menghitung estimasi nilai gabungan sementara. 
-        Simulasi ini menggunakan integrasi nilai Rapor Semester 1-5 yang telah terverifikasi 
-        dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
-        """)
-
-        # PERBAIKAN: Copyright menarik (Sudah tidak error)
-        #st.markdown("""
-            #<div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
-                #<span style="background-color: #6B8E7B; color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    #© 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
-                #</span>
-            #</div>
-        #""", unsafe_allow_html=True)
-        
-        with st.container():
-            u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
-            p_nisn = st.text_input("Password (NISN)", type="password")
-            
-            if st.button("MASUK"):
-                db = st.session_state.db_siswa
-                if db is not None:
-                    match = db[
-                        (db["Nama Siswa"].astype(str).str.upper() == u_nama.strip().upper()) & 
-                        (db["NISN"].astype(str) == p_nisn.strip())
-                    ]
-                    if not match.empty:
-                        st.session_state.logged_in = True
-                        st.session_state.user_data = match.iloc[0].to_dict()
-                        st.rerun()
-                    else: st.error("Nama Siswa atau NISN salah. Periksa kembali penulisan nama Anda.")
-                else: st.warning("Database belum tersedia. Hubungi Admin.")
-    
-    else:
-        # Halaman Siswa (Setelah Login)
-        user = st.session_state.user_data
-        st.title(f"🏫 Halo, {user['Nama Siswa']}!")
-        if st.sidebar.button("Log Out"):
-            st.session_state.logged_in = False
-            st.rerun()
-
-        col_in, col_res = st.columns([1, 2])
-        MAPEL = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
-        sim_tkad = {}
-        
-        with col_in:
-            st.subheader("📝 Input Nilai TKA/D")
-            for m in MAPEL:
-                sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"n_{m}")
-
-        with col_res:
-            total_rerata = 0
-            detail = []
-            for m in MAPEL:
-                v = [float(user[f"{m}_S{i}"]) for i in range(1, 6)]
-                avg = sum(v) / 5
-                total_rerata += avg
-                detail.append({
-                    "Mata Pelajaran": m, "Sem-1": int(v[0]), "Sem-2": int(v[1]), 
-                    "Sem-3": int(v[2]), "Sem-4": int(v[3]), "Sem-5": int(v[4]),
-                    "Rerata": f"{avg:.2f}", "TKA/D": f"{sim_tkad[m]:.2f}"
-                })
-            
-            nilai_akhir = (total_rerata * 0.4) + (sum(sim_tkad.values()) * 0.6)
-            
-            m1, m2 = st.columns(2)
-            m1.metric("Poin Rapor (40%)", f"{(total_rerata * 0.4):.2f}")
-            m2.metric("Poin TKA/D (60%)", f"{(sum(sim_tkad.values()) * 0.6):.2f}")
-
-            st.markdown(f"""
-                <div style="background:#E8F5E9;padding:20px;border-radius:12px;border:1px solid #A5D6A7;text-align:center;margin-bottom:20px;">
-                    <p style="margin:0; color:#2E7D32; font-weight:bold;">ESTIMASI NILAI AKHIR</p>
-                    <h1 style="font-size:60px !important;color:#1B5E20 !important;margin:10px 0;">{nilai_akhir:.2f}</h1>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            with st.expander("🔍 Rincian Nilai Rapor Semester 1-5"):
-                st.table(pd.DataFrame(detail))
-
-            pdf = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
-
-# FOOTER WEB
-st.markdown("""
-    <div class="footer-web">
-        © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
-    </div>
-""", unsafe_allow_html=True)
+    if not
