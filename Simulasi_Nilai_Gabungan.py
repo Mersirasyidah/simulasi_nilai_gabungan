@@ -66,8 +66,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     identitas = [
         ("Nama Siswa", f": {user.get('Nama Siswa', '')}"),
-        ("NISN", f": {user.get('NISN', '-')}"),
-        ("Kelas", f": {user.get('Kelas', '-')}")
+        ("Kelas", f": {user.get('Kelas', '-')}"),
+        ("NISN", f": {user.get('NISN', '-')}")
     ]
     
     for label, value in identitas:
@@ -87,6 +87,7 @@ def create_pdf(user, detail_data, nilai_akhir):
         total_t += float(d["TKA/D"])
     
     data.append(["", "JUMLAH", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
+    # NILAI GABUNGAN diletakkan di indeks 0 agar muncul setelah SPAN
     data.append(["NILAI GABUNGAN", "", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
     
     idx_jumlah = len(data) - 2
@@ -107,7 +108,7 @@ def create_pdf(user, detail_data, nilai_akhir):
         ('SPAN', (0,0), (0,1)), ('SPAN', (1,0), (1,1)), ('SPAN', (2,0), (6,0)), ('SPAN', (7,0), (7,1)), ('SPAN', (8,0), (8,1)),
         ('SPAN', (1, idx_jumlah), (6, idx_jumlah)),
         ('FONTNAME', (1, idx_jumlah), (1, idx_jumlah), 'Helvetica-Bold'),
-        ('SPAN', (0, idx_akhir), (7, idx_akhir)),
+        ('SPAN', (0, idx_akhir), (7, idx_akhir)), # SPAN untuk Nilai Gabungan
         ('BACKGROUND', (0, idx_akhir), (7, idx_akhir), colors.lightgrey),
         ('FONTNAME', (0, idx_akhir), (-1, idx_akhir), 'Helvetica-Bold'),
         ('FONTSIZE', (0, idx_akhir), (-1, idx_akhir), 12),
@@ -152,7 +153,7 @@ if menu == "Admin Upload":
         st.session_state.db_siswa = load_data()
         st.success("Database Berhasil Diperbarui!")
 else:
-    # --- PENAMBAHAN RUNNING TEXT RUMUS ---
+    # --- RUNNING TEXT RUMUS ---
     st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Selamat Datang di Portal Simulasi Nilai Gabungan SMP Negeri 2 Banguntapan ✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
     
     if not st.session_state.logged_in:
