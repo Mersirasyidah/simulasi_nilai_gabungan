@@ -58,8 +58,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     w, h = LETTER
     
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(w/2, h - 15*mm, "LAPORAN HASIL NILAI GABUNGAN")
-    p.drawCentredString(w/2, h - 21*mm, "TAHUN PELAJARAN 2024/2025")
+    p.drawCentredString(w/2, h - 15*mm, "HASIL SIMULASI NILAI GABUNGAN")
+    p.drawCentredString(w/2, h - 21*mm, "TAHUN PELAJARAN 2025/2026")
     
     p.setFont("Helvetica", 11)
     p.drawString(35*mm, h - 35*mm, f"Nama Siswa  : {user.get('Nama Siswa', '')}")
@@ -228,4 +228,4 @@ else:
                 st.table(pd.DataFrame(detail))
 
             pdf = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Laporan_{user['Nama Siswa']}.pdf")
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
