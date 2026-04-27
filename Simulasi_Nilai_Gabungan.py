@@ -19,44 +19,64 @@ def local_css():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
     
-    /* Latar Belakang Estetik (Gradasi) */
+    /* Latar belakang biru langit yang sangat cerah */
     .stApp {
-        background: linear-gradient(135deg, #f5f7f6 0%, #e8f0e8 100%);
+        background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%) !important;
     }
 
+    /* Running text dengan warna biru yang kontras */
     .running-text {
         font-family: 'Quicksand', sans-serif;
-        font-size: 14px; color: #3E584A; background-color: rgba(232, 240, 232, 0.9);
-        padding: 10px 0; font-weight: bold; margin-top: -50px;
-        margin-bottom: 25px; border-bottom: 1px solid #D1DBD1;
+        font-size: 14px; color: #1565C0; 
+        background-color: #BBDEFB !important;
+        padding: 12px 0; font-weight: bold; margin-top: -50px;
+        margin-bottom: 25px; border-bottom: 2px solid #90CAF9;
     }
 
-    /* Card (Kotak Putih) yang lebih lembut */
+    /* Kotak konten putih bersih dengan bayangan lembut */
     [data-testid="stVerticalBlock"] > div:has(div.element-container) {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 15px; padding: 20px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: white !important;
+        border-radius: 15px; 
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+        border: 1px solid #E3F2FD !important;
         margin-bottom: 20px;
     }
 
-    h1, h2, h3 { color: #3E584A !important; font-family: 'Quicksand', sans-serif; }
+    /* Warna Judul Biru Tua */
+    h1, h2, h3 { color: #0D47A1 !important; font-family: 'Quicksand', sans-serif; }
     
-    /* Button Estetik */
+    /* Tombol Biru Cerah (Pop Blue) */
     .stButton>button {
         border-radius: 10px; 
-        background: linear-gradient(45deg, #6B8E7B, #8eb59f);
-        color: white; font-weight: 600; border: none;
+        background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
+        color: white !important; 
+        font-weight: 700; 
+        border: none;
+        height: 3em;
         transition: 0.3s;
     }
+    
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(107, 142, 123, 0.3);
+        background: linear-gradient(45deg, #1E88E5, #42A5F5) !important;
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    /* Label Copyright Biru */
+    .copyright-label {
+        background: linear-gradient(45deg, #1976D2, #42A5F5);
+        color: white; 
+        padding: 6px 18px; 
+        border-radius: 25px; 
+        font-size: 11px; 
+        font-weight: bold; 
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .footer-web { 
-        text-align: center; color: #7f8c8d; font-size: 12px; 
+        text-align: center; color: #546E7A; font-size: 12px; 
         padding: 30px; font-family: 'Quicksand', sans-serif; 
     }
     </style>
@@ -127,7 +147,6 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    # CREDIT DI PDF
     p.setFont("Helvetica-Bold", 8)
     p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
 
@@ -188,10 +207,10 @@ else:
         dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
         """)
 
-        # COPYRIGHT MENARIK DI HALAMAN DEPAN
+        # COPYRIGHT BIRU DI HALAMAN DEPAN
         st.markdown("""
             <div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
-                <span style="background: linear-gradient(45deg, #6B8E7B, #4a6658); color: white; padding: 6px 18px; border-radius: 25px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <span class="copyright-label">
                     © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
                 </span>
             </div>
@@ -216,6 +235,7 @@ else:
                 else: st.warning("Database belum tersedia. Hubungi Admin.")
     
     else:
+        # Halaman Siswa (Setelah Login)
         user = st.session_state.user_data
         st.title(f"🏫 Halo, {user['Nama Siswa']}!")
         if st.sidebar.button("Log Out"):
@@ -250,10 +270,11 @@ else:
             m1.metric("Poin Rapor (40%)", f"{(total_rerata * 0.4):.2f}")
             m2.metric("Poin TKA/D (60%)", f"{(sum(sim_tkad.values()) * 0.6):.2f}")
 
+            # HASIL AKHIR TEMA BIRU
             st.markdown(f"""
-                <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); padding:25px; border-radius:15px; border:1px solid #A5D6A7; text-align:center; margin-bottom:20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);">
-                    <p style="margin:0; color:#2E7D32; font-weight:bold; letter-spacing: 1px;">ESTIMASI NILAI AKHIR</p>
-                    <h1 style="font-size:65px !important; color:#1B5E20 !important; margin:10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.05);">{nilai_akhir:.2f}</h1>
+                <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); padding:25px; border-radius:15px; border:1px solid #90CAF9; text-align:center; margin-bottom:20px;">
+                    <p style="margin:0; color:#0D47A1; font-weight:bold; letter-spacing: 1px;">ESTIMASI NILAI AKHIR</p>
+                    <h1 style="font-size:65px !important; color:#1565C0 !important; margin:10px 0;">{nilai_akhir:.2f}</h1>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -263,7 +284,7 @@ else:
             pdf = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
 
-# FOOTER WEB
+# FOOTER WEB TETAP DI BAWAH
 st.markdown("""
     <div class="footer-web">
         © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
