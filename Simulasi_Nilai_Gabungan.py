@@ -66,8 +66,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     identitas = [
         ("Nama Siswa", f": {user.get('Nama Siswa', '')}"),
-        ("Kelas", f": {user.get('Kelas', '-')}"),
-        ("NISN", f": {user.get('NISN', '-')}")
+        ("NISN", f": {user.get('NISN', '-')}"),
+        ("Kelas", f": {user.get('Kelas', '-')}")
     ]
     
     for label, value in identitas:
@@ -217,4 +217,4 @@ else:
             pdf_file = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
-st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer-web"><b>© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</b></div>', unsafe_allow_html=True)
