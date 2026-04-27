@@ -18,59 +18,13 @@ def local_css():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
-    
-    .stApp {
-        background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%) !important;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #E3F2FD !important;
-        border-right: 1px solid #BBDEFB;
-    }
-    
-    [data-testid="stSidebar"] .stMarkdown p, 
-    [data-testid="stSidebar"] h1, h2, h3 {
-        color: #0D47A1 !important;
-        font-family: 'Quicksand', sans-serif;
-    }
-
-    .running-text {
-        font-family: 'Quicksand', sans-serif;
-        font-size: 14px; color: #1565C0; 
-        background-color: #BBDEFB !important;
-        padding: 12px 0; font-weight: bold; margin-top: -50px;
-        margin-bottom: 25px; border-bottom: 2px solid #90CAF9;
-    }
-
-    [data-testid="stVerticalBlock"] > div:has(div.element-container) {
-        background: white !important;
-        border-radius: 15px; 
-        padding: 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
-        border: 1px solid #E3F2FD !important;
-        margin-bottom: 20px;
-    }
-
-    .stButton>button {
-        border-radius: 10px; 
-        background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
-        color: white !important; font-weight: 700; border: none; height: 3em; transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background: linear-gradient(45deg, #1E88E5, #42A5F5) !important;
-        transform: scale(1.02);
-    }
-
-    .copyright-label {
-        background: linear-gradient(45deg, #1976D2, #42A5F5);
-        color: white; padding: 6px 18px; border-radius: 25px; 
-        font-size: 11px; font-weight: bold; letter-spacing: 0.5px;
-    }
-
-    .footer-web { 
-        text-align: center; color: #546E7A; font-size: 12px; 
-        padding: 30px; font-family: 'Quicksand', sans-serif; 
-    }
+    .stApp { background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%) !important; }
+    [data-testid="stSidebar"] { background-color: #E3F2FD !important; border-right: 1px solid #BBDEFB; }
+    [data-testid="stSidebar"] .stMarkdown p, [data-testid="stSidebar"] h1, h2, h3 { color: #0D47A1 !important; font-family: 'Quicksand', sans-serif; }
+    .running-text { font-family: 'Quicksand', sans-serif; font-size: 14px; color: #1565C0; background-color: #BBDEFB !important; padding: 12px 0; font-weight: bold; margin-top: -50px; margin-bottom: 25px; border-bottom: 2px solid #90CAF9; }
+    [data-testid="stVerticalBlock"] > div:has(div.element-container) { background: white !important; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; border: 1px solid #E3F2FD !important; margin-bottom: 20px; }
+    .stButton>button { border-radius: 10px; background: linear-gradient(45deg, #2196F3, #64B5F6) !important; color: white !important; font-weight: 700; border: none; height: 3em; transition: 0.3s; }
+    .footer-web { text-align: center; color: #546E7A; font-size: 12px; padding: 30px; font-family: 'Quicksand', sans-serif; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -95,31 +49,29 @@ def create_pdf(user, detail_data, nilai_akhir):
     p = canvas.Canvas(buffer, pagesize=LETTER)
     w, h = LETTER
     
-    # --- PENGATURAN MARGIN ---
+    # Margin
     margin_top = 3 * cm
-    margin_side = 2 * cm  # Margin kiri dan kanan sama (simetris)
-    
+    margin_side = 1.5 * cm
     y_position = h - margin_top
     
-    # Judul / Header
-    p.setFont("Helvetica-Bold", 14)
+    # Header
+    p.setFont("Helvetica-Bold", 12)
     p.drawCentredString(w/2, y_position, "HASIL SIMULASI NILAI GABUNGAN")
-    y_position -= 7 * mm
+    y_position -= 5 * mm
     p.drawCentredString(w/2, y_position, "TAHUN PELAJARAN 2025/2026")
     
-    # Data Siswa
+    # Info Siswa
     y_position -= 15 * mm
-    p.setFont("Helvetica", 11)
-    p.drawString(margin_side, y_position, f"Nama Siswa  : {user.get('Nama Siswa', '')}")
-    y_position -= 6 * mm
-    p.drawString(margin_side, y_position, f"NIS         : {user.get('NIS', '')}")
-    y_position -= 6 * mm
-    p.drawString(margin_side, y_position, f"Kelas       : {user.get('Kelas', '-')}")
+    p.setFont("Helvetica", 10)
+    p.drawString(margin_side, y_position, f"Nama Siswa : {user.get('Nama Siswa', '')}")
+    y_position -= 5 * mm
+    p.drawString(margin_side, y_position, f"NIS / NISN : {user.get('NIS', '')} / {user.get('NISN', '')}")
     
-    # Tabel
+    # --- MENYUSUN TABEL SESUAI GAMBAR ---
+    # Header Tabel (2 Baris)
     data = [
-        ["No", "Mata Pelajaran", "Nilai Rapor Semester 1-5", "", "", "", "", "Rerata", "Nilai TKA/D"],
-        ["", "", "S1", "S2", "S3", "S4", "S5", "", ""]
+        ["No", "Mata Pelajaran", "Nilai Rapor Sem 1-5", "", "", "", "", "Rerata\nSem 1-5", "Nilai TKA/D"],
+        ["", "", "Sem-1", "Sem-2", "Sem-3", "Sem-4", "Sem-5", "", ""]
     ]
     
     total_r, total_t = 0, 0
@@ -128,35 +80,54 @@ def create_pdf(user, detail_data, nilai_akhir):
         total_r += float(d["Rerata"])
         total_t += float(d["TKA/D"])
     
-    data.append(["JUMLAH", "", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
-    data.append(["NILAI GABUNGAN (60% TKA/D + 40% Rapor)", "", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
+    # Baris JUMLAH
+    data.append(["", "JUMLAH", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
+    # Baris NILAI GABUNGAN
+    data.append(["", "NILAI GABUNGAN", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
     
-    # Penyesuaian Lebar Kolom agar Tengah
-    col_widths = [10*mm, 45*mm, 15*mm, 15*mm, 15*mm, 15*mm, 15*mm, 20*mm, 25*mm]
+    col_widths = [10*mm, 45*mm, 18*mm, 18*mm, 18*mm, 18*mm, 18*mm, 22*mm, 23*mm]
     table_width = sum(col_widths)
-    x_table = (w - table_width) / 2 # Mencari titik tengah halaman
+    x_table = (w - table_width) / 2
     
     table = Table(data, colWidths=col_widths)
-    table.setStyle(TableStyle([
+    
+    # --- STYLE TABEL SESUAI GAMBAR ---
+    ts = TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BACKGROUND', (0,0), (-1,1), colors.lightblue),
-        ('SPAN', (0,0), (0,1)), ('SPAN', (1,0), (1,1)), ('SPAN', (2,0), (6,0)), ('SPAN', (7,0), (7,1)), ('SPAN', (8,0), (8,1)),
-        ('SPAN', (0,-2), (6,-2)), ('SPAN', (0,-1), (7,-1)),
-        ('BACKGROUND', (0,-1), (-1,-1), colors.lightgrey),
-        ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
         ('FONTSIZE', (0,0), (-1,-1), 9),
-    ]))
+        ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'), # Header Bold
+        ('BACKGROUND', (0,0), (-1,1), colors.lightgrey), # Header Abu-abu
+        
+        # Merge Header (Span)
+        ('SPAN', (0,0), (0,1)), # No
+        ('SPAN', (1,0), (1,1)), # Mata Pelajaran
+        ('SPAN', (2,0), (6,0)), # Nilai Rapor Sem 1-5 (Judul Utama)
+        ('SPAN', (7,0), (7,1)), # Rerata
+        ('SPAN', (8,0), (8,1)), # Nilai TKA/D
+        
+        # Style Baris JUMLAH
+        ('SPAN', (1,-2), (6,-2)), # Gabung kolom MP sampai Sem-5
+        ('ALIGN', (1,-2), (1,-2), 'CENTER'),
+        ('FONTNAME', (1,-2), (1,-2), 'Helvetica-Bold'),
+        
+        # Style Baris NILAI GABUNGAN
+        ('SPAN', (0,-1), (7,-1)), # Gabung kolom No sampai Rerata
+        ('BACKGROUND', (0,-1), (7,-1), colors.lightgrey),
+        ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
+        ('ALIGN', (0,-1), (0,-1), 'CENTER'),
+    ])
+    table.setStyle(ts)
     
     y_position -= 10 * mm
     tw, th = table.wrapOn(p, margin_side, y_position)
     table.drawOn(p, x_table, y_position - th)
     
-    # Catatan Rumus di bawah tabel
-    y_note = y_position - th - 10*mm
+    # Keterangan Rumus di bawah
+    y_note = y_position - th - 15 * mm
     p.setFont("Helvetica-Oblique", 8)
-    p.drawString(margin_side, y_note, "* Rumus: (Total TKA/D x 60%) + (Total Rerata Rapor x 40%)")
+    p.drawString(x_table, y_note, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
 
     p.showPage()
     p.save()
@@ -187,14 +158,11 @@ if menu == "Admin Upload":
         save_data(df)
         st.session_state.db_siswa = load_data()
         st.success("Database Berhasil Diperbarui!")
-
 else:
-    st.markdown("""<div class="running-text"><marquee scrollamount="7">✨ Selamat Datang di Portal Akademik SMP Negeri 2 Banguntapan - Silakan lakukan simulasi nilai gabungan Anda ✨</marquee></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="running-text"><marquee scrollamount="7">✨ Selamat Datang di Portal Akademik SMP Negeri 2 Banguntapan ✨</marquee></div>""", unsafe_allow_html=True)
     
     if not st.session_state.logged_in:
         st.title("🏛️ Portal Simulasi Nilai Gabungan")
-        st.markdown("""<div style="text-align: right;"><span class="copyright-label">© 2026 dikembangkan oleh Mersi</span></div>""", unsafe_allow_html=True)
-        
         u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
         p_nisn = st.text_input("Password (NISN)", type="password")
         if st.button("MASUK"):
@@ -205,9 +173,7 @@ else:
                     st.session_state.logged_in = True
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
-                else: st.error("Kombinasi Nama dan NISN tidak ditemukan.")
-            else: st.warning("Database belum diunggah oleh admin.")
-    
+                else: st.error("Data tidak ditemukan.")
     else:
         user = st.session_state.user_data
         st.title(f"🏫 Halo, {user['Nama Siswa']}!")
@@ -218,7 +184,6 @@ else:
         col_in, col_res = st.columns([1, 2])
         MAPEL = ["Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPA"]
         sim_tkad = {}
-        
         with col_in:
             st.subheader("📝 Input Nilai TKA/D")
             for m in MAPEL:
@@ -238,26 +203,16 @@ else:
                 })
             
             total_tkad = sum(sim_tkad.values())
-            poin_rapor = total_rerata_rapor * 0.4
-            poin_tkad = total_tkad * 0.6
-            nilai_akhir = poin_rapor + poin_tkad
+            nilai_akhir = (total_rerata_rapor * 0.4) + (total_tkad * 0.6)
             
-            m1, m2 = st.columns(2)
-            m1.metric("Poin Rapor (40%)", f"{poin_rapor:.2f}")
-            m2.metric("Poin TKA/D (60%)", f"{poin_tkad:.2f}")
-
             st.markdown(f"""
                 <div style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); padding:25px; border-radius:15px; border:1px solid #90CAF9; text-align:center;">
                     <p style="margin:0; color:#0D47A1; font-weight:bold;">ESTIMASI NILAI AKHIR GABUNGAN</p>
                     <h1 style="font-size:65px !important; color:#1565C0 !important; margin:10px 0;">{nilai_akhir:.2f}</h1>
-                    <p style="font-size:13px; color:#546E7A;">(Jumlah Rerata Rapor x 0.4) + (Jumlah TKA/D x 0.6)</p>
                 </div>
             """, unsafe_allow_html=True)
             
-            with st.expander("🔍 Lihat Rincian Nilai"):
-                st.table(pd.DataFrame(detail))
-
             pdf_file = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Laporan_Simulasi_{user['Nama Siswa']}.pdf")
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Laporan_{user['Nama Siswa']}.pdf")
 
-st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMP Negeri 2 Banguntapan</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
