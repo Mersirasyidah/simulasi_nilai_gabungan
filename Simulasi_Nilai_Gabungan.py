@@ -66,8 +66,8 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     identitas = [
         ("Nama Siswa", f": {user.get('Nama Siswa', '')}"),
-        ("NISN", f": {user.get('NISN', '-')}"),
-        ("Kelas", f": {user.get('Kelas', '-')}")
+        ("Kelas", f": {user.get('Kelas', '-')}"),
+        ("NISN", f": {user.get('NISN', '-')}")
     ]
     
     for label, value in identitas:
@@ -82,7 +82,6 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     total_r, total_t = 0, 0
     for i, d in enumerate(detail_data, 1):
-        # Pastikan angka desimal 2 digit di dalam list PDF
         data.append([i, d["Mata Pelajaran"], d["Sem-1"], d["Sem-2"], d["Sem-3"], d["Sem-4"], d["Sem-5"], f"{float(d['Rerata']):.2f}", f"{float(d['TKA/D']):.2f}"])
         total_r += float(d["Rerata"])
         total_t += float(d["TKA/D"])
@@ -153,7 +152,8 @@ if menu == "Admin Upload":
         st.session_state.db_siswa = load_data()
         st.success("Database Berhasil Diperbarui!")
 else:
-    st.markdown("""<div class="running-text"><marquee scrollamount="7">✨ Selamat Datang di Portal Simulasi Nilai Gabungan SMP Negeri 2 Banguntapan ✨</marquee></div>""", unsafe_allow_html=True)
+    # --- PENAMBAHAN RUNNING TEXT RUMUS ---
+    st.markdown("""<div class="running-text"><marquee scrollamount="8">✨ Selamat Datang di Portal Simulasi Nilai Gabungan SMP Negeri 2 Banguntapan ✨ Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%) ✨</marquee></div>""", unsafe_allow_html=True)
     
     if not st.session_state.logged_in:
         st.title("🏛️ Portal Simulasi")
@@ -168,7 +168,7 @@ else:
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
                 else: st.error("Data tidak ditemukan.")
-            else: st.warning("Database kosong.")
+            else: st.warning("Database belum diunggah admin.")
     
     else:
         user = st.session_state.user_data
@@ -197,8 +197,8 @@ else:
                 detail.append({
                     "Mata Pelajaran": m, 
                     "Sem-1": int(v[0]), "Sem-2": int(v[1]), "Sem-3": int(v[2]), "Sem-4": int(v[3]), "Sem-5": int(v[4]),
-                    "Rerata": f"{avg:.2f}", # Format 2 digit di layar
-                    "TKA/D": f"{sim_tkad[m]:.2f}" # Format 2 digit di layar
+                    "Rerata": f"{avg:.2f}",
+                    "TKA/D": f"{sim_tkad[m]:.2f}"
                 })
             
             total_tkad = sum(sim_tkad.values())
@@ -217,4 +217,5 @@ else:
             pdf_file = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
-st.markdown('<div class="footer-web"><b>© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</b></div>', unsafe_allow_html=True)
+# --- FOOTER DENGAN NAMA MERSI TEBAL ---
+st.markdown('<div class="footer-web">© 2026 dikembangkan oleh <b>Mersi</b> | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
