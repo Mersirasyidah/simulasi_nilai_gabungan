@@ -100,10 +100,10 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    p.setFont("Helvetica", 10)
-    p.drawString(135*mm, y_f - 15*mm, "Banguntapan, 27 April 2026")
-    p.drawString(135*mm, y_f - 20*mm, "Kepala Sekolah,")
-    p.drawString(135*mm, y_f - 45*mm, "( ________________________ )")
+    #p.setFont("Helvetica", 10)
+    #p.drawString(135*mm, y_f - 15*mm, "Banguntapan, 27 April 2026")
+    #p.drawString(135*mm, y_f - 20*mm, "Kepala Sekolah,")
+    #p.drawString(135*mm, y_f - 45*mm, "( ________________________ )")
 
     p.showPage()
     p.save()
@@ -157,7 +157,7 @@ else:
         st.title("🏛️ Portal Simulasi Nilai Gabungan")
         
         st.info("""
-        **Selamat datang di aplikasi simulasi nilai gabungan.** Sistem ini dirancang untuk membantu Anda menghitung estimasi nilai gabungan sementara. 
+        **Selamat datang di aplikasi simulasi nilai gabungan.** Sistem ini dirancang untuk membantu siswa menghitung estimasi nilai gabungan sementara. 
         Simulasi ini menggunakan integrasi nilai Rapor Semester 1-5 yang telah terverifikasi 
         dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
         """)
