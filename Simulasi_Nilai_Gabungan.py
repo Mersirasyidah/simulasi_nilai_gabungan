@@ -55,20 +55,38 @@ def create_pdf(user, detail_data, nilai_akhir):
     y_position = h - margin_top
     
     # Header
-    p.setFont("Helvetica-Bold", 12)
+    p.setFont("Helvetica-Bold", 14)
     p.drawCentredString(w/2, y_position, "HASIL SIMULASI NILAI GABUNGAN")
-    y_position -= 5 * mm
+    y_position -= 6 * mm
     p.drawCentredString(w/2, y_position, "TAHUN PELAJARAN 2025/2026")
     
-    # Info Siswa
+    # Info Siswa (Disejajarkan)
     y_position -= 15 * mm
-    p.setFont("Helvetica", 10)
-    p.drawString(margin_side, y_position, f"Nama Siswa : {user.get('Nama Siswa', '')}")
-    y_position -= 5 * mm
-    p.drawString(margin_side, y_position, f"NIS / NISN : {user.get('NIS', '')} / {user.get('NISN', '')}")
+    p.setFont("Helvetica", 11)
     
-    # --- MENYUSUN TABEL SESUAI GAMBAR ---
-    # Header Tabel (2 Baris)
+    # Fungsi pembantu untuk menggambar identitas sejajar
+    label_x = margin_side
+    colon_x = margin_side + 30 * mm # Posisi tanda titik dua sejajar
+    value_x = margin_side + 33 * mm # Posisi nilai setelah titik dua
+    
+    # Nama
+    p.drawString(label_x, y_position, "Nama Siswa")
+    p.drawString(colon_x, y_position, ":")
+    p.drawString(value_x, y_position, f"{user.get('Nama Siswa', '')}")
+    y_position -= 6 * mm
+    
+    # NIS
+    p.drawString(label_x, y_position, "NIS")
+    p.drawString(colon_x, y_position, ":")
+    p.drawString(value_x, y_position, f"{user.get('NIS', '-')}")
+    y_position -= 6 * mm
+    
+    # NISN
+    p.drawString(label_x, y_position, "NISN")
+    p.drawString(colon_x, y_position, ":")
+    p.drawString(value_x, y_position, f"{user.get('NISN', '-')}")
+    
+    # --- TABEL ---
     data = [
         ["No", "Mata Pelajaran", "Nilai Rapor Sem 1-5", "", "", "", "", "Rerata\nSem 1-5", "Nilai TKA/D"],
         ["", "", "Sem-1", "Sem-2", "Sem-3", "Sem-4", "Sem-5", "", ""]
@@ -82,7 +100,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     # Baris JUMLAH
     data.append(["", "JUMLAH", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
-    # Baris NILAI GABUNGAN
+    # Baris NILAI GABUNGAN (Teks Tebal & Besar)
     data.append(["", "NILAI GABUNGAN", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
     
     col_widths = [10*mm, 45*mm, 18*mm, 18*mm, 18*mm, 18*mm, 18*mm, 22*mm, 23*mm]
@@ -91,40 +109,39 @@ def create_pdf(user, detail_data, nilai_akhir):
     
     table = Table(data, colWidths=col_widths)
     
-    # --- STYLE TABEL SESUAI GAMBAR ---
     ts = TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('FONTSIZE', (0,0), (-1,-1), 9),
-        ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'), # Header Bold
-        ('BACKGROUND', (0,0), (-1,1), colors.lightgrey), # Header Abu-abu
+        ('FONTSIZE', (0,0), (-1,-3), 9), # Font standar untuk isi tabel
+        ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'), # Header
+        ('BACKGROUND', (0,0), (-1,1), colors.lightgrey),
         
-        # Merge Header (Span)
-        ('SPAN', (0,0), (0,1)), # No
-        ('SPAN', (1,0), (1,1)), # Mata Pelajaran
-        ('SPAN', (2,0), (6,0)), # Nilai Rapor Sem 1-5 (Judul Utama)
-        ('SPAN', (7,0), (7,1)), # Rerata
-        ('SPAN', (8,0), (8,1)), # Nilai TKA/D
+        # Merge Header
+        ('SPAN', (0,0), (0,1)),
+        ('SPAN', (1,0), (1,1)),
+        ('SPAN', (2,0), (6,0)),
+        ('SPAN', (7,0), (7,1)),
+        ('SPAN', (8,0), (8,1)),
         
         # Style Baris JUMLAH
-        ('SPAN', (1,-2), (6,-2)), # Gabung kolom MP sampai Sem-5
-        ('ALIGN', (1,-2), (1,-2), 'CENTER'),
+        ('SPAN', (1,-2), (6,-2)),
         ('FONTNAME', (1,-2), (1,-2), 'Helvetica-Bold'),
         
-        # Style Baris NILAI GABUNGAN
-        ('SPAN', (0,-1), (7,-1)), # Gabung kolom No sampai Rerata
+        # Style Baris NILAI GABUNGAN (Font 12 Bold)
+        ('SPAN', (0,-1), (7,-1)),
         ('BACKGROUND', (0,-1), (7,-1), colors.lightgrey),
         ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,-1), (-1,-1), 12), 
         ('ALIGN', (0,-1), (0,-1), 'CENTER'),
     ])
     table.setStyle(ts)
     
-    y_position -= 10 * mm
+    y_position -= 12 * mm
     tw, th = table.wrapOn(p, margin_side, y_position)
     table.drawOn(p, x_table, y_position - th)
     
-    # Keterangan Rumus di bawah
+    # Keterangan Rumus
     y_note = y_position - th - 15 * mm
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(x_table, y_note, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
@@ -134,7 +151,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     buffer.seek(0)
     return buffer
 
-# --- 3. LOGIC APP ---
+# --- 3. LOGIC APP (Streamlit) ---
 if 'db_siswa' not in st.session_state:
     st.session_state.db_siswa = load_data()
 if 'logged_in' not in st.session_state:
@@ -187,7 +204,7 @@ else:
         with col_in:
             st.subheader("📝 Input Nilai TKA/D")
             for m in MAPEL:
-                sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"input_{m}")
+                sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"in_{m}")
 
         with col_res:
             total_rerata_rapor = 0
@@ -213,6 +230,6 @@ else:
             """, unsafe_allow_html=True)
             
             pdf_file = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Laporan_{user['Nama Siswa']}.pdf")
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
 st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
