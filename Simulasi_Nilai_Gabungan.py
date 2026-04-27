@@ -217,5 +217,5 @@ else:
             pdf_file = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
-# --- FOOTER DENGAN NAMA MERSI TEBAL ---
-st.markdown('<div class="footer-web">© 2026 **SMP Negeri 2 Banguntapan** | Dibuat oleh <b>Mersi</b></div>', unsafe_allow_html=True)
+# --- FOOTER DENGAN PERBAIKAN SINTAKS ---
+st.markdown('<div class="footer-web">© 2026 <b>SMP Negeri 2 Banguntapan</b> | Dibuat oleh <b>Mersi</b></div>', unsafe_allow_html=True)
