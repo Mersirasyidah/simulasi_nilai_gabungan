@@ -31,6 +31,14 @@ def local_css():
     }
     h1, h2, h3 { color: #3E584A !important; }
     .stButton>button { border-radius: 8px; background-color: #6B8E7B; color: white; font-weight: 600; width: 100%; }
+    /* Style untuk footer di web */
+    .footer-web {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 12px;
+        padding: 20px;
+        font-family: 'Quicksand', sans-serif;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -41,7 +49,6 @@ def load_data():
     if os.path.exists(DB_FILE):
         try:
             df = pd.read_csv(DB_FILE)
-            # Pastikan kolom Nama dan NISN bersih dari spasi luar
             df["Nama Siswa"] = df["Nama Siswa"].astype(str).str.strip()
             df["NISN"] = df["NISN"].astype(str).str.strip()
             return df
@@ -100,10 +107,9 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    #p.setFont("Helvetica", 10)
-    #p.drawString(135*mm, y_f - 15*mm, "Banguntapan, 27 April 2026")
-    #p.drawString(135*mm, y_f - 20*mm, "Kepala Sekolah,")
-    #p.drawString(135*mm, y_f - 45*mm, "( ________________________ )")
+    # PENAMBAHAN TULISAN DI PDF
+    p.setFont("Helvetica-Bold", 8)
+    p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
 
     p.showPage()
     p.save()
@@ -163,14 +169,12 @@ else:
         """)
         
         with st.container():
-            # LOGIN MENGGUNAKAN NAMA DAN NISN
             u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
             p_nisn = st.text_input("Password (NISN)", type="password")
             
             if st.button("MASUK"):
                 db = st.session_state.db_siswa
                 if db is not None:
-                    # Pencocokan nama (case-insensitive) dan NISN
                     match = db[
                         (db["Nama Siswa"].astype(str).str.upper() == u_nama.strip().upper()) & 
                         (db["NISN"].astype(str) == p_nisn.strip())
@@ -229,3 +233,10 @@ else:
 
             pdf = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
+
+# FOOTER WEB
+st.markdown("""
+    <div class="footer-web">
+        DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN
+    </div>
+""", unsafe_allow_html=True)
