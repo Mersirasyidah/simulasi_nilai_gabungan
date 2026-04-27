@@ -31,20 +31,13 @@ def local_css():
     }
     h1, h2, h3 { color: #3E584A !important; }
     .stButton>button { border-radius: 8px; background-color: #6B8E7B; color: white; font-weight: 600; width: 100%; }
-    /* Style untuk footer di web */
-    .footer-web {
-        text-align: center;
-        color: #7f8c8d;
-        font-size: 12px;
-        padding: 20px;
-        font-family: 'Quicksand', sans-serif;
-    }
+    .footer-web { text-align: center; color: #7f8c8d; font-size: 12px; padding: 20px; font-family: 'Quicksand', sans-serif; }
     </style>
     """, unsafe_allow_html=True)
 
 local_css()
 
-# --- 2. FUNGSI PEMBANTU ---
+# --- 2. FUNGSI PEMBANTU (HELPERS) ---
 def load_data():
     if os.path.exists(DB_FILE):
         try:
@@ -107,7 +100,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    # PENAMBAHAN TULISAN DI PDF
+    # CREDIT DI PDF
     p.setFont("Helvetica-Bold", 8)
     p.drawRightString(w - 15*mm, y_f - 10*mm, "DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN")
 
@@ -167,6 +160,15 @@ else:
         Simulasi ini menggunakan integrasi nilai Rapor Semester 1-5 yang telah terverifikasi 
         dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
         """)
+
+        # COPYRIGHT MENARIK DI HALAMAN DEPAN
+        st.markdown("""
+            <div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
+                <span style="background-color: #6B8E7B; color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
+                </span>
+            </div>
+        """, unsafe_allow_html=True)
         
         with st.container():
             u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
@@ -234,9 +236,9 @@ else:
             pdf = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
 
-# FOOTER WEB
+# FOOTER WEB TETAP ADA DI PALING BAWAH
 st.markdown("""
     <div class="footer-web">
-        DI BUAT OLEH MERSI SMP NEGERI 2 BANGUNTAPAN
+        © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
     </div>
 """, unsafe_allow_html=True)
