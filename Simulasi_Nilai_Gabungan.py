@@ -36,12 +36,13 @@ def local_css():
 
 local_css()
 
-# --- 2. FUNGSI PEMBANTU (HELPERS) ---
+# --- 2. FUNGSI PEMBANTU ---
 def load_data():
     if os.path.exists(DB_FILE):
         try:
             df = pd.read_csv(DB_FILE)
-            df["NIS"] = df["NIS"].astype(str).str.strip()
+            # Pastikan kolom Nama dan NISN bersih dari spasi luar
+            df["Nama Siswa"] = df["Nama Siswa"].astype(str).str.strip()
             df["NISN"] = df["NISN"].astype(str).str.strip()
             return df
         except:
@@ -57,7 +58,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     w, h = LETTER
     
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(w/2, h - 15*mm, "SIMULASI HASIL NILAI GABUNGAN")
+    p.drawCentredString(w/2, h - 15*mm, "LAPORAN HASIL NILAI GABUNGAN")
     p.drawCentredString(w/2, h - 21*mm, "TAHUN PELAJARAN 2024/2025")
     
     p.setFont("Helvetica", 11)
@@ -65,7 +66,6 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.drawString(35*mm, h - 42*mm, f"NIS         : {user.get('NIS', '')}")
     p.drawString(35*mm, h - 49*mm, f"Kelas       : {user.get('Kelas', '-')}")
     
-    # Struktur tabel 2 baris header sesuai gambar
     data = [
         ["No", "Mata Pelajaran", "Nilai Rapor Sem 1-5", "", "", "", "", "Rerata\nSem 1-5", "Nilai TKA/D"],
         ["", "", "Sem-1", "Sem-2", "Sem-3", "Sem-4", "Sem-5", "", ""]
@@ -85,7 +85,6 @@ def create_pdf(user, detail_data, nilai_akhir):
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('FONTSIZE', (0,0), (-1,-1), 9),
         ('BACKGROUND', (0,0), (-1,1), colors.lightgrey),
         ('SPAN', (0,0), (0,1)), ('SPAN', (1,0), (1,1)), ('SPAN', (2,0), (6,0)), ('SPAN', (7,0), (7,1)), ('SPAN', (8,0), (8,1)),
         ('SPAN', (0,-2), (6,-2)), ('SPAN', (0,-1), (7,-1)),
@@ -101,10 +100,10 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(15*mm, y_f, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
     
-    #p.setFont("Helvetica", 10)
-    #p.drawString(135*mm, y_f - 15*mm, "Banguntapan, 27 April 2026")
-    #p.drawString(135*mm, y_f - 20*mm, "Kepala Sekolah,")
-    #p.drawString(135*mm, y_f - 45*mm, "( ________________________ )")
+    p.setFont("Helvetica", 10)
+    p.drawString(135*mm, y_f - 15*mm, "Banguntapan, 27 April 2026")
+    p.drawString(135*mm, y_f - 20*mm, "Kepala Sekolah,")
+    p.drawString(135*mm, y_f - 45*mm, "( ________________________ )")
 
     p.showPage()
     p.save()
@@ -117,15 +116,13 @@ if 'db_siswa' not in st.session_state:
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-# Sidebar Hidden Admin
 with st.sidebar:
     st.title("Navigasi")
     list_menu = ["Home / Login"]
-    
     st.write("---")
     with st.expander("🔐 Admin Access"):
         admin_pass = st.text_input("Admin Password", type="password")
-        if admin_pass == "alhamdulillahadmin99": # Ganti password ini sesuai keinginan
+        if admin_pass == "admin123":
             list_menu.append("Admin Upload")
             st.success("Menu Admin Terbuka")
 
@@ -141,16 +138,16 @@ if menu == "Admin Upload":
             st.session_state.db_siswa = None
             st.rerun()
 
-    uploaded = st.file_uploader("Upload Excel Baru (Wajib ada kolom NIS, NISN, Nama Siswa, Kelas)", type=["xlsx"])
+    uploaded = st.file_uploader("Upload Excel Baru", type=["xlsx"])
     if uploaded:
         df = pd.read_excel(uploaded)
         df.columns = df.columns.str.strip()
-        if "NIS" in df.columns and "NISN" in df.columns:
+        if "Nama Siswa" in df.columns and "NISN" in df.columns:
             save_data(df)
             st.session_state.db_siswa = load_data()
             st.success("Database Berhasil Diperbarui!")
         else:
-            st.error("Format Excel salah. Pastikan kolom NIS dan NISN tersedia.")
+            st.error("Format Excel salah. Wajib ada kolom 'Nama Siswa' dan 'NISN'.")
 
 # --- 5. HALAMAN LOGIN & SISWA ---
 else:
@@ -159,26 +156,31 @@ else:
     if not st.session_state.logged_in:
         st.title("🏛️ Portal Simulasi Nilai Gabungan")
         
-        # Kalimat yang Anda pilih
         st.info("""
-        **Selamat datang di aplikasi simulasi nilai gabungan.** Sistem ini dirancang untuk membantu siswa menghitung estimasi nilai gabungan sementara. 
+        **Selamat datang di aplikasi simulasi nilai gabungan.** Sistem ini dirancang untuk membantu Anda menghitung estimasi nilai gabungan sementara. 
         Simulasi ini menggunakan integrasi nilai Rapor Semester 1-5 yang telah terverifikasi 
         dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
         """)
         
         with st.container():
-            u = st.text_input("Username (NIS)")
-            p = st.text_input("Password (NISN)", type="password")
+            # LOGIN MENGGUNAKAN NAMA DAN NISN
+            u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
+            p_nisn = st.text_input("Password (NISN)", type="password")
+            
             if st.button("MASUK"):
                 db = st.session_state.db_siswa
                 if db is not None:
-                    match = db[(db["NIS"].astype(str) == u.strip()) & (db["NISN"].astype(str) == p.strip())]
+                    # Pencocokan nama (case-insensitive) dan NISN
+                    match = db[
+                        (db["Nama Siswa"].astype(str).str.upper() == u_nama.strip().upper()) & 
+                        (db["NISN"].astype(str) == p_nisn.strip())
+                    ]
                     if not match.empty:
                         st.session_state.logged_in = True
                         st.session_state.user_data = match.iloc[0].to_dict()
                         st.rerun()
-                    else: st.error("NIS atau NISN salah.")
-                else: st.warning("Database belum diupload oleh Admin.")
+                    else: st.error("Nama Siswa atau NISN salah. Periksa kembali penulisan nama Anda.")
+                else: st.warning("Database belum tersedia. Hubungi Admin.")
     
     else:
         user = st.session_state.user_data
@@ -193,7 +195,6 @@ else:
         
         with col_in:
             st.subheader("📝 Input Nilai TKA/D")
-            st.caption("Masukkan nilai Try Out siswa di sini:")
             for m in MAPEL:
                 sim_tkad[m] = st.number_input(f"{m}", 0.0, 100.0, 0.0, key=f"n_{m}")
 
@@ -227,4 +228,4 @@ else:
                 st.table(pd.DataFrame(detail))
 
             pdf = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Laporan_{user['NIS']}.pdf")
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Laporan_{user['Nama Siswa']}.pdf")
