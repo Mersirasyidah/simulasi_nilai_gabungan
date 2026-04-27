@@ -1,0 +1,8 @@
+{
+  "name": "simulasinilaigabungan",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node index.js",
+    "build": "echo 'No build step needed'"
+  }
+}
