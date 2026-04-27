@@ -162,13 +162,13 @@ else:
         """)
 
         # COPYRIGHT MENARIK DI HALAMAN DEPAN
-        st.markdown("""
-            <div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
-                <span style="background-color: #6B8E7B; color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
+        #st.markdown("""
+            #<div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
+                #<span style="background-color: #6B8E7B; color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    #© 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
                 </span>
             </div>
-        """, unsafe_allow_html=True)
+        #""", unsafe_allow_html=True)
         
         with st.container():
             u_nama = st.text_input("Username (Nama Lengkap Sesuai Rapor)")
@@ -239,6 +239,6 @@ else:
 # FOOTER WEB TETAP ADA DI PALING BAWAH
 st.markdown("""
     <div class="footer-web">
-        © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
+        © 2026 oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
     </div>
 """, unsafe_allow_html=True)
