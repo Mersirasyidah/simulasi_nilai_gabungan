@@ -218,4 +218,4 @@ else:
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
 # --- FOOTER DENGAN NAMA MERSI TEBAL ---
-st.markdown('<div class="footer-web">© 2026 dikembangkan oleh <b>Mersi</b> | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer-web">© 2026 **SMP Negeri 2 Banguntapan** | Dibuat oleh <b>Mersi</b>', unsafe_allow_html=True)
