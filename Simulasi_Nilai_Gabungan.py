@@ -65,12 +65,13 @@ def create_pdf(user, detail_data, nilai_akhir):
     p.setFont("Helvetica", 11)
     
     label_x = margin_side
-    colon_x = margin_side + 30 * mm # Titik dua sejajar di 3cm dari margin kiri
-    value_x = margin_side + 33 * mm # Nilai dimulai setelah titik dua
+    colon_x = margin_side + 30 * mm 
+    value_x = margin_side + 33 * mm 
     
+    # Perubahan: NIS diganti Kelas
     identitas = [
         ("Nama Siswa", f": {user.get('Nama Siswa', '')}"),
-        ("NIS", f": {user.get('NIS', '-')}"),
+        ("Kelas", f": {user.get('Kelas', '-')}"),
         ("NISN", f": {user.get('NISN', '-')}")
     ]
     
@@ -91,10 +92,10 @@ def create_pdf(user, detail_data, nilai_akhir):
         total_r += float(d["Rerata"])
         total_t += float(d["TKA/D"])
     
-    # Tambahkan baris JUMLAH
+    # Baris JUMLAH
     data.append(["", "JUMLAH", "", "", "", "", "", f"{total_r:.2f}", f"{total_t:.2f}"])
-    # Tambahkan baris NILAI GABUNGAN
-    data.append(["", "NILAI GABUNGAN", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
+    # Baris NILAI GABUNGAN (Teks diletakkan di indeks 0 agar muncul saat SPAN)
+    data.append(["NILAI GABUNGAN", "", "", "", "", "", "", "", f"{nilai_akhir:.2f}"])
     
     idx_jumlah = len(data) - 2
     idx_akhir = len(data) - 1
@@ -115,22 +116,21 @@ def create_pdf(user, detail_data, nilai_akhir):
         ('BACKGROUND', (0,0), (-1,1), colors.lightgrey),
         
         # Merge Headers
-        ('SPAN', (0,0), (0,1)), # No
-        ('SPAN', (1,0), (1,1)), # Mata Pelajaran
-        ('SPAN', (2,0), (6,0)), # Group Rapor
-        ('SPAN', (7,0), (7,1)), # Rerata
-        ('SPAN', (8,0), (8,1)), # TKA/D
+        ('SPAN', (0,0), (0,1)), 
+        ('SPAN', (1,0), (1,1)), 
+        ('SPAN', (2,0), (6,0)), 
+        ('SPAN', (7,0), (7,1)), 
+        ('SPAN', (8,0), (8,1)), 
         
         # Style Baris JUMLAH
         ('SPAN', (1, idx_jumlah), (6, idx_jumlah)),
         ('FONTNAME', (1, idx_jumlah), (1, idx_jumlah), 'Helvetica-Bold'),
         
-        # Style Baris NILAI GABUNGAN (Bold & Besar)
-        ('SPAN', (0, idx_akhir), (7, idx_akhir)), # Gabung No sampai Rerata
+        # Style Baris NILAI GABUNGAN
+        ('SPAN', (0, idx_akhir), (7, idx_akhir)), # Gabung kolom 0 sampai 7
         ('BACKGROUND', (0, idx_akhir), (7, idx_akhir), colors.lightgrey),
         ('FONTNAME', (0, idx_akhir), (-1, idx_akhir), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, idx_akhir), (-1, idx_akhir), 12),
-        ('ALIGN', (0, idx_akhir), (0, idx_akhir), 'CENTER'),
+        ('FONTSIZE', (0, idx_akhir), (-1, idx_akhir), 12), # Perbesar font
     ])
     table.setStyle(ts)
     
@@ -138,7 +138,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     tw, th = table.wrapOn(p, margin_side, y_position)
     table.drawOn(p, x_table, y_position - th)
     
-    # Footer Ket
+    # Keterangan Rumus
     y_note = y_position - th - 12 * mm
     p.setFont("Helvetica-Oblique", 8)
     p.drawString(x_table, y_note, "Ket : Rumus Nilai Gabungan = ((Nilai TKA + TKAD) x 60%) + (Jumlah Rerata Nilai Rapor Semester 1-5 x 40%)")
@@ -187,7 +187,7 @@ else:
                     st.session_state.logged_in = True
                     st.session_state.user_data = match.iloc[0].to_dict()
                     st.rerun()
-                else: st.error("Kombinasi Nama dan NISN tidak ditemukan.")
+                else: st.error("Data tidak ditemukan.")
     else:
         user = st.session_state.user_data
         st.title(f"🏫 Halo, {user['Nama Siswa']}!")
@@ -227,6 +227,6 @@ else:
             """, unsafe_allow_html=True)
             
             pdf_file = create_pdf(user, detail, nilai_akhir)
-            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Laporan_{user['Nama Siswa']}.pdf")
+            st.download_button("🖨️ CETAK LAPORAN PDF", pdf_file, f"Simulasi_{user['Nama Siswa']}.pdf")
 
 st.markdown('<div class="footer-web">© 2026 dikembangkan oleh Mersi | SMPN 2 Banguntapan</div>', unsafe_allow_html=True)
