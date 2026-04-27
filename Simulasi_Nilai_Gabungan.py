@@ -122,7 +122,7 @@ with st.sidebar:
     st.write("---")
     with st.expander("🔐 Admin Access"):
         admin_pass = st.text_input("Admin Password", type="password")
-        if admin_pass == "admin123":
+        if admin_pass == "alhamdulillahadmin99":
             list_menu.append("Admin Upload")
             st.success("Menu Admin Terbuka")
 
