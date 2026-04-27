@@ -57,7 +57,7 @@ def create_pdf(user, detail_data, nilai_akhir):
     w, h = LETTER
     
     p.setFont("Helvetica-Bold", 14)
-    p.drawCentredString(w/2, h - 15*mm, "LAPORAN HASIL NILAI GABUNGAN")
+    p.drawCentredString(w/2, h - 15*mm, "SIMULASI HASIL NILAI GABUNGAN")
     p.drawCentredString(w/2, h - 21*mm, "TAHUN PELAJARAN 2024/2025")
     
     p.setFont("Helvetica", 11)
