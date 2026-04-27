@@ -19,12 +19,27 @@ def local_css():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
     
-    /* Latar belakang biru langit yang sangat cerah */
+    /* 1. Latar Belakang Utama */
     .stApp {
         background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%) !important;
     }
 
-    /* Running text dengan warna biru yang kontras */
+    /* 2. Menu Navigasi (Sidebar) Senada */
+    [data-testid="stSidebar"] {
+        background-color: #E3F2FD !important;
+        border-right: 1px solid #BBDEFB;
+    }
+    
+    /* Warna teks dan judul di sidebar */
+    [data-testid="stSidebar"] .stMarkdown p, 
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3 {
+        color: #0D47A1 !important;
+        font-family: 'Quicksand', sans-serif;
+    }
+
+    /* 3. Running Text (Marquee Area) */
     .running-text {
         font-family: 'Quicksand', sans-serif;
         font-size: 14px; color: #1565C0; 
@@ -33,7 +48,7 @@ def local_css():
         margin-bottom: 25px; border-bottom: 2px solid #90CAF9;
     }
 
-    /* Kotak konten putih bersih dengan bayangan lembut */
+    /* 4. Kotak Konten (Cards) */
     [data-testid="stVerticalBlock"] > div:has(div.element-container) {
         background: white !important;
         border-radius: 15px; 
@@ -43,10 +58,10 @@ def local_css():
         margin-bottom: 20px;
     }
 
-    /* Warna Judul Biru Tua */
+    /* 5. Tipografi Global */
     h1, h2, h3 { color: #0D47A1 !important; font-family: 'Quicksand', sans-serif; }
     
-    /* Tombol Biru Cerah (Pop Blue) */
+    /* 6. Tombol Estetik */
     .stButton>button {
         border-radius: 10px; 
         background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
@@ -63,7 +78,7 @@ def local_css():
         box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
     }
 
-    /* Label Copyright Biru */
+    /* Badge Copyright */
     .copyright-label {
         background: linear-gradient(45deg, #1976D2, #42A5F5);
         color: white; 
@@ -207,7 +222,7 @@ else:
         dan nilai TKA/D (Hasil Try Out) yang telah dilaksanakan.
         """)
 
-        # COPYRIGHT BIRU DI HALAMAN DEPAN
+        # COPYRIGHT BADGE
         st.markdown("""
             <div style="text-align: right; margin-top: -15px; margin-bottom: 20px;">
                 <span class="copyright-label">
@@ -235,7 +250,6 @@ else:
                 else: st.warning("Database belum tersedia. Hubungi Admin.")
     
     else:
-        # Halaman Siswa (Setelah Login)
         user = st.session_state.user_data
         st.title(f"🏫 Halo, {user['Nama Siswa']}!")
         if st.sidebar.button("Log Out"):
@@ -284,7 +298,7 @@ else:
             pdf = create_pdf(user, detail, nilai_akhir)
             st.download_button("🖨️ CETAK LAPORAN PDF", pdf, f"Simulasi_Nilai_Gabungan_{user['Nama Siswa']}.pdf")
 
-# FOOTER WEB TETAP DI BAWAH
+# FOOTER WEB
 st.markdown("""
     <div class="footer-web">
         © 2026 dikembangkan oleh Mersi | Inovasi Digital SMP Negeri 2 Banguntapan
