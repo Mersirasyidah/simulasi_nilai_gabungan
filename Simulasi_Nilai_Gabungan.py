@@ -71,7 +71,6 @@ def create_pdf(user, detail_data, nilai_akhir):
     # Perubahan: NIS diganti Kelas
     identitas = [
         ("Nama Siswa", f": {user.get('Nama Siswa', '')}"),
-        ("Kelas", f": {user.get('Kelas', '-')}"),
         ("NISN", f": {user.get('NISN', '-')}"),
         ("Kelas", f": {user.get('Kelas', '-')}")
     ]
